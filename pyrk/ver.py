@@ -60,7 +60,7 @@ def read_release_version():
         finally:
             f.close()
 
-    except BaseException:
+    except FileNotFoundError:
         return None
 
 
