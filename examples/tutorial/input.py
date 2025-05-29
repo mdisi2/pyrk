@@ -50,11 +50,14 @@ run this line in the terminal:
 
     python .\pyrk\driver.py --infile=examples\default\input.py --plotdir=out\default
 
+    python .\pyrk\driver.py --infile=examples\default\input.py --plotdir=out\default
+
         [] '.\pyrk\driver.py' locates and runs the driver.
         [] 'infile=examples...' locates the input (.py file) containing the reactor parameters.
         [] '--plotdir=out...' will create a folder to save the output data.
 
 Change each of these components to your desired specifications when running your simulations.
+The default example should only take a few seconds to a minute to complete.
 
 '''
 
