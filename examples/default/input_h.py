@@ -1,8 +1,3 @@
-# this file has been modified for the new th_system
-# changed the way to define conduction
-# parameters are not real material properties, but rather placeholders to
-# check the code
-
 from pyrk.utilities.ur import units
 from pyrk import th_component as th
 import math
@@ -24,7 +19,7 @@ alpha_c = -1.8 * units.pcm / units.kelvin
 alpha_m = -0.7 * units.pcm / units.kelvin
 alpha_r = 1.8 * units.pcm / units.kelvin
 # below from steady state analysis
-t_fuel = 946.74521 * units.kelvin
+t_fuel = 955.58086 * units.kelvin
 t_cool = 936.57636 * units.kelvin
 t_refl = 923.18521 * units.kelvin
 t_mod = 937.39862 * units.kelvin
@@ -47,7 +42,7 @@ core_outer_radius = 1.25 * units.meter  #
 t0 = 0.00 * units.seconds
 
 # Timestep
-dt = 0.001 * units.seconds
+dt = 0.005 * units.seconds
 
 # Final Time
 tf = 5.0 * units.seconds
@@ -92,10 +87,6 @@ a_fuel = area_sphere(r_particle) * n_pebbles * n_particles_per_pebble
 a_refl = 2 * math.pi * core_outer_radius * core_height
 
 # Convection Heat Transfer Coefficients
-
-# h_mod = 4700 * units.watt / units.kelvin / units.meter**2
-# h_refl = 600 * units.watt / units.kelvin / units.meter**2
-
 from pyrk.convective_model import ConvectiveModel
 from pyrk.materials.flibe import Flibe
 from pyrk.materials.graphite import Graphite
@@ -160,15 +151,13 @@ spectrum = "thermal"
 feedback = True
 
 # External Reactivity
-from pyrk.reactivity_insertion import ImpulseReactivityInsertion
-rho_ext = ImpulseReactivityInsertion(timer=ti,
-                                     t_start=1.0 * units.seconds,
-                                     t_end=2.0 * units.seconds,
-                                     rho_init=0.0 * units.delta_k,
-                                     rho_max=0.001 * units.delta_k)
+from pyrk.reactivity_insertion import StepReactivityInsertion
+rho_ext = StepReactivityInsertion(timer=ti, t_step=1.0 * units.seconds,
+                                  rho_init=0.0 * units.delta_k,
+                                  rho_final=0.005 * units.delta_k)
 
 # maximum number of internal steps that the ode solver will take
-nsteps = 10000
+nsteps = 1000
 
 
 fuel = th.THComponent(name="fuel",
@@ -217,18 +206,19 @@ graph_peb = th.THComponent(name="graph_peb",
 
 components = [fuel, cool, refl, mod, graph_peb, core]
 
+# TODO: verify the conduction lengths and maybe calibrate for spherical components
 # The fuel conducts to the moderator graphite
-fuel.add_conduction('mod', area=a_fuel, L=thickness_fuel_matrix)
+fuel.add_conduction('mod', area=a_fuel, L=4 * units.millimeter)
 
 # The moderator graphite conducts to the core graphite
-mod.add_conduction('core', area=a_core, L=r_core)
+mod.add_conduction('core', area=a_core, L=25 * units.millimeter)
 # The moderator graphite conducts to the fuel
-mod.add_conduction('fuel', area=a_mod, L=vol_mod / a_mod)
+mod.add_conduction('fuel', area=a_mod, L=25 * units.millimeter)
 # The moderator graphite convects to the coolant
 mod.add_convection('cool', h=h_mod_temperature, area=a_mod)
 
 # The core graphite conducts to the moderator graphite
-core.add_conduction('mod', area=a_core, L=r_core)
+core.add_conduction('mod', area=a_core, L=25 * units.centimeter)
 
 # The graphite pebbles convect to the coolant
 graph_peb.add_convection('cool', h=h_mod_temperature, area=a_graph_peb)
