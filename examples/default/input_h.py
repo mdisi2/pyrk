@@ -88,14 +88,11 @@ a_refl = 2 * math.pi * core_outer_radius * core_height
 
 # Convection Heat Transfer Coefficients
 from pyrk.convective_model import ConvectiveModel
-from pyrk.materials.flibe import Flibe
-from pyrk.materials.graphite import Graphite
 
-flibe = Flibe()
+flibe = Flibe(name="flibe")
 L_mod = 2 * r_pebble
 a_flow_mod = vol_cool / core_height
-m_flow_mod = flibe.rho(T=t_cool) * a_flow_mod * vel_cool
-
+m_flow_mod = flibe.rho(t_cool) * a_flow_mod * vel_cool
 h_mod_temperature = ConvectiveModel(
     mat=flibe,
     m_flow=m_flow_mod,
@@ -104,18 +101,25 @@ h_mod_temperature = ConvectiveModel(
     model="wakao"
 )
 
-graphite = Graphite()
-L_refl = core_outer_radius 
-a_flow_refl = vol_refl / core_height
-m_flow_refl = flibe.rho(T=t_cool) * a_flow_refl * vel_cool
+h_mod = h_mod_temperature.h()
 
-h_refl_temperature = ConvectiveModel(
-    mat=flibe,
-    m_flow=m_flow_refl,
-    a_flow=a_flow_refl,
-    length_scale=L_refl,
-    model="wakao"
-)
+h_refl = 600 * units.watt / units.kelvin / units.meter**2
+
+'''
+    L_refl = core_outer_radius
+    a_flow_refl = vol_refl / core_height
+
+    rho_mod = Flibe().density()          
+    m_flow_refl = rho_mod.rho(t_cool) * a_flow_refl * vel_cool
+
+    h_refl_temperature = ConvectiveModel(
+        mat=flibe,
+        m_flow=m_flow_refl,
+        a_flow=a_flow_refl,
+        length_scale=L_refl,
+        model="wakao"
+    )`
+'''
 
 # modified alphas for mod
 vol_mod_tot = vol_mod + vol_graph_peb + vol_core
@@ -228,7 +232,7 @@ cool.add_convection('graph_peb', h=h_mod_temperature, area=a_graph_peb)
 # The coolant convects accross the graphite pebbles
 cool.add_convection('mod', h=h_mod_temperature, area=a_mod)
 # The coolant convects accross the reflector
-cool.add_convection('refl', h=h_refl_temperature, area=a_refl)
+cool.add_convection('refl', h=h_refl, area=a_refl)
 
 # The reflector convects with the coolant
-refl.add_convection('cool', h=h_refl_temperature, area=a_refl)
+refl.add_convection('cool', h=h_refl, area=a_refl)

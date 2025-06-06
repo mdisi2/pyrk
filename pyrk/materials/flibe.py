@@ -1,5 +1,6 @@
 from pyrk.utilities.ur import units
 from pyrk.density_model import DensityModel
+from pyrk.conductivity_model import ConductivityModel
 from pyrk.materials.liquid_material import LiquidMaterial
 
 
@@ -34,11 +35,14 @@ class Flibe(LiquidMaterial):
                                 cp=self.specific_heat_capacity(),
                                 dm=self.density())
 
+
     def thermal_conductivity(self):
         """FLiBe thermal conductivity in [W/m-K]
-        TODO:k= 0.7662+0.0005T (T in celsius)
         """
-        return 1.0 * units.watt / (units.meter * units.kelvin)
+        return ConductivityModel(a=0.7662 * units.watt / (units.meter * units.kelvin),
+                                b=0.0005 * units.watt /
+                                (units.meter * units.kelvin) / units.kelvin,
+                                model="linear")
 
     def specific_heat_capacity(self):
         """Specific heat capacity of flibe [J/kg/K]

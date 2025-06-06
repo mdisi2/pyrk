@@ -92,39 +92,10 @@ a_fuel = area_sphere(r_particle) * n_pebbles * n_particles_per_pebble
 a_refl = 2 * math.pi * core_outer_radius * core_height
 
 # Convection Heat Transfer Coefficients
-
-# h_mod = 4700 * units.watt / units.kelvin / units.meter**2
-# h_refl = 600 * units.watt / units.kelvin / units.meter**2
-
-from pyrk.convective_model import ConvectiveModel
-from pyrk.materials.flibe import Flibe
-from pyrk.materials.graphite import Graphite
-
-flibe = Flibe()
-L_mod = 2 * r_pebble
-a_flow_mod = vol_cool / core_height
-m_flow_mod = flibe.rho(T=t_cool) * a_flow_mod * vel_cool
-
-h_mod_temperature = ConvectiveModel(
-    mat=flibe,
-    m_flow=m_flow_mod,
-    a_flow=a_flow_mod,
-    length_scale=L_mod,
-    model="wakao"
-)
-
-graphite = Graphite()
-L_refl = core_outer_radius 
-a_flow_refl = vol_refl / core_height
-m_flow_refl = flibe.rho(T=t_cool) * a_flow_refl * vel_cool
-
-h_refl_temperature = ConvectiveModel(
-    mat=flibe,
-    m_flow=m_flow_refl,
-    a_flow=a_flow_refl,
-    length_scale=L_refl,
-    model="wakao"
-)
+# TODO implent h(T) model
+h_mod = 4700 * units.watt / units.kelvin / units.meter**2
+# TODO placeholder
+h_refl = 600 * units.watt / units.kelvin / units.meter**2
 
 # modified alphas for mod
 vol_mod_tot = vol_mod + vol_graph_peb + vol_core
@@ -225,20 +196,20 @@ mod.add_conduction('core', area=a_core, L=r_core)
 # The moderator graphite conducts to the fuel
 mod.add_conduction('fuel', area=a_mod, L=vol_mod / a_mod)
 # The moderator graphite convects to the coolant
-mod.add_convection('cool', h=h_mod_temperature, area=a_mod)
+mod.add_convection('cool', h=h_mod, area=a_mod)
 
 # The core graphite conducts to the moderator graphite
 core.add_conduction('mod', area=a_core, L=r_core)
 
 # The graphite pebbles convect to the coolant
-graph_peb.add_convection('cool', h=h_mod_temperature, area=a_graph_peb)
+graph_peb.add_convection('cool', h=h_mod, area=a_graph_peb)
 
 # The coolant convects accross the graphite pebbles
-cool.add_convection('graph_peb', h=h_mod_temperature, area=a_graph_peb)
+cool.add_convection('graph_peb', h=h_mod, area=a_graph_peb)
 # The coolant convects accross the graphite pebbles
-cool.add_convection('mod', h=h_mod_temperature, area=a_mod)
+cool.add_convection('mod', h=h_mod, area=a_mod)
 # The coolant convects accross the reflector
-cool.add_convection('refl', h=h_refl_temperature, area=a_refl)
+cool.add_convection('refl', h=h_refl, area=a_refl)
 
 # The reflector convects with the coolant
-refl.add_convection('cool', h=h_refl_temperature, area=a_refl)
+refl.add_convection('cool', h=h_refl, area=a_refl)
